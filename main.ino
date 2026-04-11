@@ -24,21 +24,45 @@ void loop() {
   float voltage = tempValue * (5.0 / 1023.0);
   float temperature = (voltage - 0.5) * 100;
 
-  // ⚗️ pH (simulated using potentiometer)
+  // ⚗️ pH (simulated)
   int phValue = analogRead(phPin);
   float ph = (phValue * 14.0) / 1023.0;
 
-  // 💧 Turbidity (photoresistor)
+  // 💧 Turbidity
   int turbidity = analogRead(turbidityPin);
 
-  // 🚨 Buzzer condition (dirty water)
-  if (turbidity < 800) {
-    digitalWrite(buzzer, HIGH);  // ON
-  } else {
-    digitalWrite(buzzer, LOW);   // OFF
+  // 🔍 Status Logic (SAFE / WARNING / UNSAFE)
+  String status;
+
+  // 🔴 UNSAFE
+  if (temperature < 15 || temperature > 40 ||
+      ph < 5.5 || ph > 9.5 ||
+      turbidity < 600) {
+
+    status = "UNSAFE";
   }
 
-  // 📺 LCD Display - Screen 1
+  // 🟡 WARNING
+  else if ((temperature >= 15 && temperature < 20) || (temperature > 35 && temperature <= 40) ||
+           (ph >= 5.5 && ph < 6.5) || (ph > 8.5 && ph <= 9.5) ||
+           (turbidity >= 600 && turbidity < 800)) {
+
+    status = "WARNING";
+  }
+
+  // 🟢 SAFE
+  else {
+    status = "SAFE";
+  }
+
+  // 🚨 Buzzer (only for UNSAFE)
+  if (status == "UNSAFE") {
+    digitalWrite(buzzer, HIGH);
+  } else {
+    digitalWrite(buzzer, LOW);
+  }
+
+  // 📺 LCD Display - Screen 1 (Temp + pH)
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Temp:");
@@ -50,29 +74,39 @@ void loop() {
 
   delay(2000);
 
-  // 📺 LCD Display - Screen 2
+  // 📺 LCD Display - Screen 2 (Turbidity + Message)
   lcd.clear();
+
+  // Line 1 → Turbidity value
   lcd.setCursor(0, 0);
   lcd.print("Turb:");
   lcd.print(turbidity);
 
-  if (turbidity < 800) {
-    lcd.setCursor(0, 1);
-    lcd.print("Water: DIRTY");
-  } else {
-    lcd.setCursor(0, 1);
-    lcd.print("Water: CLEAN");
+  // Line 2 → Message
+  lcd.setCursor(0, 1);
+
+  if (status == "SAFE") {
+    lcd.print("SAFE FOR USE ");
+  }
+  else if (status == "WARNING") {
+    lcd.print("CHECK WATER  ");
+  }
+  else {
+    lcd.print("DO NOT USE   ");
   }
 
   delay(2000);
 
-  // 🖥️ Serial Monitor (for checking)
+  // 🖥️ Serial Monitor
   Serial.print("Temp: ");
   Serial.print(temperature);
   Serial.print(" C | pH: ");
   Serial.print(ph);
   Serial.print(" | Turbidity: ");
-  Serial.println(turbidity);
+  Serial.print(turbidity);
+
+  Serial.print(" | Status: ");
+  Serial.println(status);
 
   delay(1000);
 }
