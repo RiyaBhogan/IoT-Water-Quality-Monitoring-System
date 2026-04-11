@@ -21,10 +21,6 @@ This project monitors water quality using sensors and displays results on an LCD
 * LCD displays readings
 * If values cross threshold → buzzer turns ON
 
-## 🔗 Tinkercad Link
-
-Paste your link here
-
 ## 🖼️ Circuit Diagram
 
 images -> circuit.png
